@@ -1,1 +1,7 @@
-dwave-ocean-sdk>=3.3.0
+# dwave-qbsolv (used for CPU solving) is unmaintained and requires dimod<0.11,
+# so these are pinned rather than pulling in current dwave-ocean-sdk.
+numpy<2.0.0
+networkx
+dimod==0.10.17
+dwave-qbsolv
+dwave-hybrid==0.6.5
