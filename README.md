@@ -12,7 +12,9 @@ Firstly, you need to be able to use D-Wave Ocean platform. In order to do that, 
 
 You also need to install all other required packages. In order to do that, you have to run the command "pip3 install -r requirements.txt" in a folder with the file "requirements.txt".
 
-Then, you can start running the solvers (e.g., you can run scripts from the "examples" directory, e.g., python3 SolutionPartitioningSolver.py).
+**Note on Python version**: `requirements.txt` pins the legacy `dwave-ocean-sdk<5.0.0`, which depends on `dimod==0.10.17` and therefore `numpy==1.21.4`. That `numpy` version has no wheels for Python 3.11+, so **use Python 3.10 or older** to install this project. Additionally, the legacy `dwave-cloud-client` bundled with this SDK version defines its models in a pydantic v1 style (a `__root__` field), which raises `TypeError: To define root models, use pydantic.RootModel...` under pydantic v2. After `pip3 install -r requirements.txt`, also run `pip3 install "pydantic<2"` to fix this.
+
+Then, you can start running the solvers (e.g., you can run scripts from the "examples" directory, e.g., python3 SolutionPartitioningSolver.py). You don't need real D-Wave hardware access to try this out: pass `solver_type='cpu'` (the default in the example scripts) and solving runs entirely locally via the classical `QBSolv` sampler.
 
 If you want to change something in communication with D-Wave, check DWaveSolvers.py. There you can change solvers' configuration and change 'solve_qubo' function. As long as 'solve_qubo' function returns QUBO solution like all D-Wave's solvers, the rest of the code should work properly. 
 
