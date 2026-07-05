@@ -160,3 +160,32 @@ One finding confirmed at confidence 8/10 and fixed:
 Also fixed one non-security bug caught during the same pass: `db.connect()` assumed `db_path`
 was already a `Path` (`db_path.parent.mkdir(...)` throws `AttributeError` on a plain string) --
 now coerces with `Path(db_path)` and uses `parents=True` so a multi-level custom path also works.
+
+## 2026-07-05 — Seed refresh: re-pulled live Notion, closed the 188/105 drift
+
+Re-queried the live "Supplier Outreach Control" data source directly (SQL mode, both pages,
+145 rows total) instead of reconstructing this session's earlier connection-fixing work from
+memory -- more reliable than re-deriving 70+ pairs by hand. Expanded every row's `Opportunity`/
+`Supplier` relation arrays into a full cross-join, excluding 13 CO-contact rows (no `Supplier`
+relation -- a CO is not a supplier) and 2 supplier-only "relationship" rows (no `Opportunity`
+resolved yet -- Cla-Val and Fairbanks Morse ADL inquiries, kept as `(url, None)` placeholders in
+`RAW_PAIRS` for visibility, same as before). Diffed the resulting 246 distinct pairs against the
+prior seed's 105: zero pairs were stale (everything previously seeded is still live), 141 were
+new -- consistent with this session's earlier connection-fixing pass plus organic Notion growth.
+Rewrote `scripts/_seed_links.py` wholesale from the live pull rather than hand-patching, and
+added the 2 previously-missing suppliers (Motion Industries, Milwaukee Valve Co.) to
+`scripts/_seed_suppliers.py`. Re-ran `build_seed_csvs.py`: opportunities 242 (unchanged),
+suppliers 190 (was 188), co_clusters 12 (unchanged), links 246 (was 105) -- all now match live
+Notion exactly. `pytest` (67 passed) and `ruff check` stayed green with no code changes required,
+since the row-count assertions in `tests/phase0/test_schema.py` are dynamic against the CSV.
+
+Re-running `demo_phase2.py` against the persistent local `data/` store initially failed
+("expected BLOCKED before /fn-quote-add, got NOT_YET_REVIEWED") -- not a regression from the
+seed refresh, but a leftover quote on `N0010426QNB47` from an earlier same-session demo run
+against that same gitignored, non-ephemeral DB file. Deleted `data/ferrum_nexus.db` and
+`data/.dbkey` (both gitignored runtime state, safe to discard) and re-ran `/fn-setup` fresh;
+both phase gates passed clean afterward. Noting this because the demo scripts call `connect()`
+with no path override, so they share state with whatever's on disk rather than an isolated
+tempfile DB -- rerunning a demo gate a second time against old state can produce a false gate
+failure that looks like a code regression. Wiping `data/` before a gate re-run is the fix, not a
+code change.

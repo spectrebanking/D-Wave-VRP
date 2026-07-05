@@ -190,4 +190,6 @@ SUPPLIERS = [
 ("https://app.notion.com/de72005ac9824908b3f8f0ef63f28da2","Metals USA","Steel/Fab|Valves/Piping","Prospect",None,"structural steel pipe, schedule 40/80, A53/A500",None,"Distributor"),
 ("https://app.notion.com/eabd474d34174716904341d2f3ffa845","Saginaw Pipe","Valves/Piping|Steel/Fab","Prospect",None,"carbon steel pipe supplier, A106",None,"Distributor"),
 ("https://app.notion.com/f7941100f4804bec8f49f2f7a221a0d2","Haskel / BuTech (high-pressure valves, fittings, tubing)","Valves/Piping","Prospect","sales@haskel.com","BuTech high-pressure valves up to 150,000 PSI; fittings/tubing; hydrogen/subsea/test systems",None,"Manufacturer"),
+("https://app.notion.com/383ed5bb5bca819e8211d63f0853d81f","Motion Industries (formerly Kaman)","Steel/Fab","Prospect",None,None,None,"Distributor"),
+("https://app.notion.com/383ed5bb5bca819f8d8fd63e2e2da260","Milwaukee Valve Co.","Steel/Fab","Prospect","sales@milwaukeevalve.com",None,None,"Manufacturer"),
 ]
