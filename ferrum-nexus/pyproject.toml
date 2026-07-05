@@ -1,0 +1,28 @@
+[project]
+name = "ferrum-nexus"
+version = "0.1.0"
+description = "Ferrum Nexus GovCon bid-readiness cockpit (local, Claude Code package)"
+requires-python = ">=3.10"
+dependencies = [
+    "sqlcipher3-binary>=0.5.4",
+    "cryptography>=42.0",
+    "pymupdf>=1.24",
+    "pdfplumber>=0.11",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+]
+
+[tool.setuptools]
+packages = ["scripts"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

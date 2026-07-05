@@ -1,0 +1,28 @@
+# Readiness Assessment rule set -- v0, UNVERIFIED.
+#
+# Per BUILD-PLAN-v2.md section 6 and section 11: this rule set has NOT been
+# reviewed by a GovCon SME / APEX Accelerator against the section-13 golden
+# test set. Every assessment this produces must carry the banner below, and
+# this file's `version` must be bumped (and the banner/verified flag updated
+# by a human, not by this tool) only after that sign-off happens.
+#
+# This file is data, deliberately kept out of Python, so an SME can review
+# and edit it directly without touching code.
+
+version: v0
+verified: false
+banner: >
+  UNVERIFIED (awaiting SME) -- decision-support only; the human is
+  responsible; the solicitation controls.
+
+# Shown to the human as a forced per-item checklist when factual completeness
+# passes. This is NEVER a green "ready" state -- ticking every box here is
+# still the human's judgment call, not the tool's.
+forced_checklist:
+  - reps_certs: "Representations & certifications current in SAM (once active)?"
+  - set_aside_eligibility: "Does this solicitation's set-aside match our actual eligibility?"
+  - nonmanufacturer_rule: "If not the manufacturer, does the nonmanufacturer rule waiver apply?"
+  - taa_buy_american: "TAA / Buy American Act compliance confirmed for the sourced part?"
+  - source_approval_qsl: "Source approval / QSL requirement met for this NSN, if applicable?"
+  - packaging_inspection: "Packaging standard (MIL-STD-2073) and inspection point (source/destination) confirmed?"
+  - flowdowns: "All FAR/DFARS flowdown clauses reviewed against our actual capability?"
