@@ -18,6 +18,7 @@ def test_doctor_green_after_setup(tmp_path, monkeypatch):
     monkeypatch.setattr(credentials, "DATA_DIR", data_dir)
     monkeypatch.setattr(credentials, "DB_KEY_PATH", data_dir / ".dbkey")
     monkeypatch.setattr(credentials, "SAM_KEY_PATH", data_dir / ".sam_api_key")
+    monkeypatch.setattr(credentials, "NOTION_TOKEN_PATH", data_dir / ".notion_token")
     monkeypatch.setattr(db, "DATA_DIR", data_dir)
     monkeypatch.setattr(db, "DB_PATH", data_dir / "ferrum_nexus.db")
 
@@ -45,6 +46,7 @@ def test_doctor_red_when_no_data_dir(tmp_path, monkeypatch):
     monkeypatch.setattr(credentials, "DATA_DIR", data_dir)
     monkeypatch.setattr(credentials, "DB_KEY_PATH", data_dir / ".dbkey")
     monkeypatch.setattr(credentials, "SAM_KEY_PATH", data_dir / ".sam_api_key")
+    monkeypatch.setattr(credentials, "NOTION_TOKEN_PATH", data_dir / ".notion_token")
     monkeypatch.setattr(db, "DATA_DIR", data_dir)
     monkeypatch.setattr(db, "DB_PATH", data_dir / "ferrum_nexus.db")
 

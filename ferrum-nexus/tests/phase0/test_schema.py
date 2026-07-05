@@ -13,7 +13,7 @@ SEED_DIR = ROOT / "seed"
 REQUIRED_TABLES = {
     "opportunities", "suppliers", "co_clusters", "blockers", "adls",
     "onboarding_docs", "past_performance", "attachments", "quotes",
-    "awards", "market_intel",
+    "awards", "market_intel", "quote_outcomes",
 }
 
 

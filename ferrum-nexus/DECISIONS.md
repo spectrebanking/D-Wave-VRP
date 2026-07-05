@@ -219,3 +219,64 @@ and re-run `build_seed_csvs.py` -- the loader isn't hardcoded to stay at 10 rows
 5 new tests added (`tests/phase4/test_awards.py`), plus `tests/phase0/test_schema.py` extended to
 cover the two new tables/CSVs. 72 tests passing (was 67), ruff clean, `/fn-doctor` and both
 Phase 2/3 gates re-verified green from a wiped `data/` directory.
+
+## 2026-07-05 — Live Notion sync client (`notion_client.py` / `notion_sync.py`)
+
+Built the Notion analog of `sam_client.py`: pinned endpoint
+(`https://api.notion.com/v1/data_sources/{id}/query`, `Notion-Version: 2025-09-03`), an
+injectable-transport `NotionClient` with the same exponential-backoff-on-429 shape as the SAM
+client, and a `flatten_page()` helper that turns a raw Notion API page into a flat dict
+(`notion_url` + one key per property, handling title/rich_text/select/status/multi_select/number/
+checkbox/url/email/date/relation).
+
+Same posture as `sam_client.py` before a real SAM key existed: **no real Notion integration
+token exists in this build/test environment** (this session's own Notion access is via the
+Claude Code MCP connector, which is not a portable bearer token a standalone script can use) --
+so `notion_sync.py` is fixture-tested only (`tests/phase4/test_notion_client.py`,
+`test_notion_sync.py`). To run it live: create an internal integration at
+notion.so/my-integrations, share the three relevant databases with it (Contract Opportunities,
+Supplier Matrix, Supplier Outreach Control), then supply the token at `/fn-setup` (added a
+`validate_notion_token_live()` prompt mirroring the SAM key flow) or via
+`credentials.store_notion_token()` directly.
+
+The three data-source IDs and property names (`Title`, `NaicsCode`, `Pipeline`, `Supplier`,
+`Categories`, `Opportunity`/`Supplier` relations on the outreach junction, etc.) were confirmed
+by fetching each live data source's actual schema through this session's Notion MCP access
+before writing the transform functions -- not guessed from the CSV column names, which differ
+from the live Notion property names in several cases (e.g. live `Title`/`NaicsCode` vs. seed
+CSV's `title`/`naics_code`).
+
+Refactored `seed.py` to expose `upsert_opportunity()` / `upsert_supplier()` / `upsert_link()` as
+standalone functions so `notion_sync.py` and the CSV loader share one upsert path instead of
+duplicating the SQL -- a live sync and a one-shot CSV seed can never drift out of sync with each
+other's write logic.
+
+## 2026-07-05 — Recursive-learning feedback loop (`learning.py`)
+
+Added `quote_outcomes` (quote_key -> pending/won/lost/no_response) and `scripts/learning.py`:
+`record_outcome()`, `supplier_reliability()` (win rate across a supplier's DECIDED outcomes only
+-- `no_response` is excluded from the denominator, since it isn't evidence of under-performance
+on a bid the supplier actually made), and `supplier_scorecard()`.
+
+Wired an optional third scoring component into `score.py`: `supplier_track_record`, the average
+reliability of an opportunity's linked suppliers (neutral 0.5 prior when none have decided
+history, so an unproven supplier is never penalized as if proven unreliable). **Ships at weight
+0.0 in `DEFAULT_WEIGHTS`** -- Ferrum Nexus has no closed transactions yet (per the live Notion
+execution-status notes), so there's no real history to learn from today, and shipping the weight
+at 0 means every existing score is byte-identical to before this change. As real outcomes
+accumulate via `/fn-outcome`, raising the weight makes `/fn-score` start favoring suppliers with
+a proven win rate -- no code change needed when that day comes. `weights.get("supplier_track_record", 0.0)`
+(not direct indexing) keeps old 2-key custom weight dicts working without a `KeyError`.
+
+## 2026-07-05 — `/fn-sync`: the recurring re-pull half of "recursive learning"
+
+`scripts/fn_sync.py` refreshes from every live source that has credentials on file (Notion via
+`notion_sync.sync_all`, SAM.gov via a rolling 30-day `pull.py` window) and is designed to run
+unattended on a schedule -- every upsert underneath is already idempotent, and a missing
+credential for one source just skips it with a message instead of blocking the other. Documented
+a sample cron line in RUNBOOK.md rather than wiring a live recurring Claude Code Remote trigger
+in this session: a local cron job is the portable mechanism that works on Brocque's own machine
+regardless of whether a Claude Code session is running, matching this project's "local,
+encrypted-at-rest" design goal. A Claude-Code-side scheduled trigger remains an option if he'd
+rather have it run through here instead -- not set up without being asked, since it's a
+standing recurring action outside this one-shot build.

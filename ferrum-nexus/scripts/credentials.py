@@ -15,6 +15,7 @@ from pathlib import Path
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 DB_KEY_PATH = DATA_DIR / ".dbkey"
 SAM_KEY_PATH = DATA_DIR / ".sam_api_key"
+NOTION_TOKEN_PATH = DATA_DIR / ".notion_token"
 
 
 def _write_locked(path: Path, content: str) -> None:
@@ -44,3 +45,17 @@ def get_sam_api_key() -> str | None:
 
 def has_sam_api_key() -> bool:
     return SAM_KEY_PATH.exists() and bool(get_sam_api_key())
+
+
+def store_notion_token(token: str) -> None:
+    _write_locked(NOTION_TOKEN_PATH, token.strip())
+
+
+def get_notion_token() -> str | None:
+    if not NOTION_TOKEN_PATH.exists():
+        return None
+    return NOTION_TOKEN_PATH.read_text(encoding="utf-8").strip()
+
+
+def has_notion_token() -> bool:
+    return NOTION_TOKEN_PATH.exists() and bool(get_notion_token())

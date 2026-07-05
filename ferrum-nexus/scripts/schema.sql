@@ -197,3 +197,17 @@ CREATE TABLE IF NOT EXISTS quotes (
     created_at TEXT,
     FOREIGN KEY (supplier_key) REFERENCES suppliers (notion_url)
 );
+
+-- [Recursive learning] Records the real-world outcome of a quote once it's
+-- known, so /fn-score can weigh a supplier's decided track record over time
+-- (see scripts/learning.py). 'pending' is the default until decided; only
+-- 'won'/'lost' count toward a supplier's reliability -- 'no_response' is
+-- excluded from that denominator since it isn't evidence the supplier
+-- under-performed on a bid they actually made.
+CREATE TABLE IF NOT EXISTS quote_outcomes (
+    quote_key TEXT PRIMARY KEY,
+    outcome TEXT NOT NULL DEFAULT 'pending',
+    decided_at TEXT,
+    notes TEXT,
+    FOREIGN KEY (quote_key) REFERENCES quotes (quote_key)
+);

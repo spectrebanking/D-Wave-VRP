@@ -7,7 +7,8 @@ import credentials
 REQUIRED_TABLES = {
     "opportunities", "suppliers", "co_clusters", "opportunity_supplier_links",
     "blockers", "adls", "onboarding_docs", "past_performance", "attachments",
-    "attested_specs", "quotes", "cui_access_log",
+    "attested_specs", "quotes", "cui_access_log", "awards", "market_intel",
+    "quote_outcomes",
 }
 
 
@@ -37,6 +38,7 @@ def check() -> dict:
 
     results["db_key_present"] = credentials.DB_KEY_PATH.exists()
     results["sam_api_key_present"] = credentials.has_sam_api_key()
+    results["notion_token_present"] = credentials.has_notion_token()
 
     results["green"] = (
         results["store_reachable"]
@@ -54,6 +56,9 @@ def main() -> int:
     if not results.get("sam_api_key_present"):
         print("NOTE: no SAM.gov API key on file yet -- run /fn-setup with a real key "
               "before Phase 3 (live SAM pulls). Not required for Phase 0/1.")
+    if not results.get("notion_token_present"):
+        print("NOTE: no Notion integration token on file yet -- /fn-sync's live half "
+              "needs one (credentials.store_notion_token). Not required otherwise.")
     return 0 if results.get("green") else 1
 
 

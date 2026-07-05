@@ -53,6 +53,20 @@ def validate_sam_key_live(api_key: str) -> bool:
         return resp.status == 200
 
 
+def validate_notion_token_live(token: str) -> bool:
+    """One live call to confirm a Notion integration token works. Same posture
+    as validate_sam_key_live: only invoked when a real token is supplied
+    interactively."""
+    import urllib.request
+
+    req = urllib.request.Request(
+        "https://api.notion.com/v1/users/me",
+        headers={"Authorization": f"Bearer {token}", "Notion-Version": "2025-09-03"},
+    )
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        return resp.status == 200
+
+
 def run_interactive() -> None:
     """The real guided flow. Not exercised by automated tests (no human present)."""
     print("Ferrum Nexus setup")
@@ -74,6 +88,21 @@ def run_interactive() -> None:
             print("SAM.gov API key stored and validated.")
         else:
             print("Key did not validate; not stored. You can re-run /fn-setup once SAM is active.")
+
+    notion_token = input(
+        "Notion integration token (optional, for live /fn-sync -- Enter to skip): "
+    ).strip()
+    if notion_token:
+        try:
+            ok = validate_notion_token_live(notion_token)
+        except Exception as exc:  # noqa: BLE001 - surface any failure to the user plainly
+            print(f"Could not validate token against Notion's live API: {exc}")
+            ok = False
+        if ok:
+            credentials.store_notion_token(notion_token)
+            print("Notion integration token stored and validated.")
+        else:
+            print("Token did not validate; not stored.")
 
     save_config(config)
     conn = connect()

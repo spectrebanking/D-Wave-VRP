@@ -14,46 +14,56 @@ def _rows(csv_path: Path):
             yield {k: (v if v != "" else None) for k, v in row.items()}
 
 
+def upsert_opportunity(conn, r: dict) -> None:
+    """Shared by the CSV seed loader and notion_sync.py's live path -- both
+    produce this exact dict shape, so there's one upsert to keep correct."""
+    conn.execute(
+        """INSERT INTO opportunities
+           (notion_url, title, product_type, pipeline, active,
+            supplier_coverage_status, naics_code)
+           VALUES (?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT(notion_url) DO UPDATE SET
+             title=excluded.title, product_type=excluded.product_type,
+             pipeline=excluded.pipeline, active=excluded.active,
+             supplier_coverage_status=excluded.supplier_coverage_status,
+             naics_code=excluded.naics_code""",
+        (
+            r["notion_url"], r["title"], r["product_type"], r["pipeline"],
+            1 if r["active"] in ("True", "1", True) else 0,
+            r["supplier_coverage_status"], r["naics_code"],
+        ),
+    )
+
+
 def load_opportunities(conn) -> int:
     rows = list(_rows(SEED_DIR / "opportunities.csv"))
     for r in rows:
-        conn.execute(
-            """INSERT INTO opportunities
-               (notion_url, title, product_type, pipeline, active,
-                supplier_coverage_status, naics_code)
-               VALUES (?, ?, ?, ?, ?, ?, ?)
-               ON CONFLICT(notion_url) DO UPDATE SET
-                 title=excluded.title, product_type=excluded.product_type,
-                 pipeline=excluded.pipeline, active=excluded.active,
-                 supplier_coverage_status=excluded.supplier_coverage_status,
-                 naics_code=excluded.naics_code""",
-            (
-                r["notion_url"], r["title"], r["product_type"], r["pipeline"],
-                1 if r["active"] in ("True", "1", True) else 0,
-                r["supplier_coverage_status"], r["naics_code"],
-            ),
-        )
+        upsert_opportunity(conn, r)
     conn.commit()
     return len(rows)
+
+
+def upsert_supplier(conn, r: dict) -> None:
+    conn.execute(
+        """INSERT INTO suppliers
+           (notion_url, supplier_name, categories, status, email,
+            keywords, naics, supplier_type)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT(notion_url) DO UPDATE SET
+             supplier_name=excluded.supplier_name, categories=excluded.categories,
+             status=excluded.status, email=excluded.email, keywords=excluded.keywords,
+             naics=excluded.naics, supplier_type=excluded.supplier_type""",
+        (
+            r["notion_url"], r["supplier_name"], r["categories"], r["status"],
+            r["email"], r["keywords"], r["naics"], r["supplier_type"],
+        ),
+    )
 
 
 def load_suppliers(conn) -> int:
     rows = list(_rows(SEED_DIR / "suppliers.csv"))
     for r in rows:
-        conn.execute(
-            """INSERT INTO suppliers
-               (notion_url, supplier_name, categories, status, email,
-                keywords, naics, supplier_type)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-               ON CONFLICT(notion_url) DO UPDATE SET
-                 supplier_name=excluded.supplier_name, categories=excluded.categories,
-                 status=excluded.status, email=excluded.email, keywords=excluded.keywords,
-                 naics=excluded.naics, supplier_type=excluded.supplier_type""",
-            (
-                r["notion_url"], r["supplier_name"], r["categories"], r["status"],
-                r["email"], r["keywords"], r["naics"], r["supplier_type"],
-            ),
-        )
+        upsert_supplier(conn, r)
     conn.commit()
     return len(rows)
 
@@ -73,15 +83,19 @@ def load_co_clusters(conn) -> int:
     return len(rows)
 
 
+def upsert_link(conn, opportunity_url: str, supplier_url: str) -> None:
+    conn.execute(
+        """INSERT INTO opportunity_supplier_links (opportunity_id, supplier_id)
+           VALUES (?, ?)
+           ON CONFLICT(opportunity_id, supplier_id) DO NOTHING""",
+        (opportunity_url, supplier_url),
+    )
+
+
 def load_links(conn) -> int:
     rows = list(_rows(SEED_DIR / "links.csv"))
     for r in rows:
-        conn.execute(
-            """INSERT INTO opportunity_supplier_links (opportunity_id, supplier_id)
-               VALUES (?, ?)
-               ON CONFLICT(opportunity_id, supplier_id) DO NOTHING""",
-            (r["opportunity_url"], r["supplier_url"]),
-        )
+        upsert_link(conn, r["opportunity_url"], r["supplier_url"])
     conn.commit()
     return len(rows)
 
