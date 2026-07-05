@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import pytest  # noqa: E402
-from sam_client import SamClient, RateLimitExceeded  # noqa: E402
+from sam_client import SamClient, RateLimitExceeded, SamApiError, _redact_api_key  # noqa: E402
 
 
 def _page(n_results: int, offset: int) -> dict:
@@ -81,6 +81,36 @@ def test_gives_up_after_max_retries_on_sustained_429():
     client = SamClient(api_key="fake", transport=fake_transport, sleep=lambda s: None)
     with pytest.raises(RateLimitExceeded):
         client.search_opportunities("01/01/2026", "02/01/2026")
+
+
+def test_redact_api_key_strips_value_but_keeps_url_shape():
+    url = "https://api.sam.gov/opportunities/v2/search?api_key=SUPERSECRET123&limit=1"
+    redacted = _redact_api_key(url)
+    assert "SUPERSECRET123" not in redacted
+    assert "api_key=***" in redacted
+    assert "limit=1" in redacted
+
+
+def test_error_messages_never_contain_the_live_api_key():
+    """Security regression: exception text must not leak api_key, since
+    RUNBOOK.md tells the operator to paste errors into a chat assistant."""
+    def fake_transport(url):
+        return 500, {"error": "boom"}
+
+    client = SamClient(api_key="LIVE-SECRET-KEY", transport=fake_transport)
+    with pytest.raises(SamApiError) as exc_info:
+        client.search_opportunities("01/01/2026", "02/01/2026")
+    assert "LIVE-SECRET-KEY" not in str(exc_info.value)
+
+
+def test_rate_limit_error_never_contains_the_live_api_key():
+    def fake_transport(url):
+        return 429, {"error": "rate limited"}
+
+    client = SamClient(api_key="LIVE-SECRET-KEY", transport=fake_transport, sleep=lambda s: None)
+    with pytest.raises(RateLimitExceeded) as exc_info:
+        client.search_opportunities("01/01/2026", "02/01/2026")
+    assert "LIVE-SECRET-KEY" not in str(exc_info.value)
 
 
 def test_notice_description_uses_pinned_endpoint():

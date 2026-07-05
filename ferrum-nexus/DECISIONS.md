@@ -125,3 +125,38 @@ install -e ".[dev]"` from scratch, then `pytest tests/ -q` (64 passed), `ruff ch
 (exit 0), and `scripts/demo_phase3.py` (exit 0) -- all against a genuinely fresh install with
 zero state carried over. This is the actual evidence behind RUNBOOK.md's "definition of
 complete," not a restated claim.
+
+## 2026-07-05 — Security review (red team pass)
+
+Ran a security-focused review of the full `ferrum-nexus/` diff (3-stage: find findings, then an
+independent false-positive filter per finding, keep only confidence >= 8/10). Two findings were
+filtered out as not concretely exploitable for this threat model:
+
+- **SSRF in `attachments.py`'s default downloader** (confidence 4/10) -- `_default_download`
+  passes `source_url` straight to `urlopen` with no scheme/host allow-list. Real gap, but
+  `source_url` values come from SAM.gov's platform-generated `resourceLinks`/resources-endpoint
+  fields, not free-text input, so exploiting it requires SAM.gov itself to be compromised or
+  misbehaving. Logged here as a known hardening gap, not fixed: if `/fn-pull` graduates from
+  fixture-tested to routinely running against the live API, add a scheme allow-list
+  (`http`/`https` only) and reject link-local/metadata IP ranges before downloading.
+- **TOCTOU on secret file permissions** in `credentials.py`'s `_write_locked` (confidence 3/10)
+  -- writes the file, then `chmod`s it to 0600, leaving a brief window governed by the process
+  umask. Real race, but requires another already-logged-in local user actively watching `data/`
+  at the exact moment `/fn-setup` first runs, on what's designed as a single-operator machine.
+  Not fixed; if this is ever deployed multi-user, switch to `os.open(..., 0o600)` before writing
+  instead of write-then-chmod.
+
+One finding confirmed at confidence 8/10 and fixed:
+
+- **API key leakage via exception messages** (`sam_client.py`) -- `SamApiError`/
+  `RateLimitExceeded` embedded the full request URL, including the plaintext `api_key` query
+  parameter, in the exception message. Concrete because RUNBOOK.md's own troubleshooting flow
+  tells the operator to paste errors into a chat assistant on failure -- a documented path for
+  the live key to leave the machine. Fixed: added `_redact_api_key()` (regex substitution on the
+  `api_key=` query param) and used it at both raise sites (`_get`'s 429 and non-200 branches).
+  Regression tests added: `test_error_messages_never_contain_the_live_api_key`,
+  `test_rate_limit_error_never_contains_the_live_api_key`.
+
+Also fixed one non-security bug caught during the same pass: `db.connect()` assumed `db_path`
+was already a `Path` (`db_path.parent.mkdir(...)` throws `AttributeError` on a plain string) --
+now coerces with `Path(db_path)` and uses `parents=True` so a multi-level custom path also works.

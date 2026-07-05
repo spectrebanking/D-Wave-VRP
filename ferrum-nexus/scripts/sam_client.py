@@ -14,11 +14,20 @@ of 2026-07, not generic labels. If SAM.gov changes these, update the
 constants here and the pinning test fails loudly instead of silently drifting.
 """
 import json
+import re
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime
+
+_API_KEY_RE = re.compile(r"([?&]api_key=)[^&]*")
+
+
+def _redact_api_key(url: str) -> str:
+    """Strip the live api_key value out of a URL before it goes anywhere
+    that might get logged, printed, or pasted into a support/chat channel."""
+    return _API_KEY_RE.sub(r"\1***", url)
 
 SEARCH_ENDPOINT = "https://api.sam.gov/opportunities/v2/search"
 NOTICE_DESC_ENDPOINT = "https://api.sam.gov/opportunities/v1/noticedesc/{notice_id}"
@@ -80,11 +89,13 @@ class SamClient:
             if status == 429:
                 attempt += 1
                 if attempt > MAX_RETRIES_ON_429:
-                    raise RateLimitExceeded(f"429 after {attempt - 1} retries: {url}")
+                    raise RateLimitExceeded(
+                        f"429 after {attempt - 1} retries: {_redact_api_key(url)}"
+                    )
                 self._sleep(2 ** attempt)  # exponential backoff
                 continue
             if status != 200:
-                raise SamApiError(f"SAM API returned {status} for {url}: {body}")
+                raise SamApiError(f"SAM API returned {status} for {_redact_api_key(url)}: {body}")
             return body
 
     def search_opportunities(

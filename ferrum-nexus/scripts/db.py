@@ -10,10 +10,10 @@ DB_PATH = DATA_DIR / "ferrum_nexus.db"
 SCHEMA_PATH = Path(__file__).resolve().parent / "schema.sql"
 
 
-def connect(db_path: Path | None = None, key: str | None = None):
+def connect(db_path: Path | str | None = None, key: str | None = None):
     """Open (creating if needed) the encrypted store and ensure schema v1 exists."""
-    db_path = db_path or DB_PATH
-    db_path.parent.mkdir(exist_ok=True)
+    db_path = Path(db_path) if db_path else DB_PATH
+    db_path.parent.mkdir(parents=True, exist_ok=True)
     key = key or get_or_create_db_key()
 
     conn = sqlcipher.connect(str(db_path))
