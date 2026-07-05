@@ -1,0 +1,33 @@
+# FPDS historical contract-award records -- market/competitor intelligence,
+# NOT live opportunities to bid on (these contracts are already awarded).
+# Pulled from the live "FPDS Ferrum Relevant Awards -- Fast Intel" Notion data
+# source (collection://a1774961-a0b7-417b-bbf0-091790a5da32), 2026-07-05.
+#
+# This is the ENTIRE set that actually exists as real rows in Notion. Per the
+# "Ferrum Nexus -- GovCon Matrix Command Center" page, the underlying FPDS
+# delta file matched ~1,135,517 keyword-relevant award rows workspace-wide,
+# and a "fast intel pack" filtered the first 100,000 of those for Notion --
+# but Notion's connector caps row creation at 100 database pages per create
+# call, so only these 10 rows were ever actually created as pages. The other
+# two FPDS databases in Notion (Contract Awards Delta -- Import Control, Raw
+# Notion Import Chunks) are import-tracking control rows describing that
+# stalled bulk load, not additional award data -- there is nothing further to
+# pull from them. If the user re-runs the native Notion CSV import for the
+# full 100k/1.1M-row pack, re-export and re-run scripts/build_seed_csvs.py to
+# pick up the rest; this file is not hardcoded to stay at 10.
+#
+# Columns: notion_url, award_id, vendor, cage_code, uei, agency, office, psc,
+#          psc_description, naics_code, naics_description, set_aside,
+#          value_used, fiscal_year, action_date, description, ferrum_score
+AWARDS = [
+    ("https://app.notion.com/394ed5bb5bca8114afdef84216515c41", "2031JG24F00379", "DUNKIRK SPECIALTY STEEL LLC", "3AY32", "HCDHW43GHAD7", "Department of the Treasury", "US MINT HEADQUARTERS", "9640", "IRON AND STEEL PRIMARY AND SEMIFINISHED PRODUCTS", "333514", "SPECIAL DIE AND TOOL, DIE SET, JIG, AND FIXTURE MANUFACTURING", None, 246600, 2024, "2024-08-16", "L6 DIE STEEL CONTRACT", 96.18),
+    ("https://app.notion.com/394ed5bb5bca8126a1d9e1221cb8f5f8", "28321325FDS030098", "DELL FEDERAL SYSTEMS L.P", "3XAU1", "N1C5QLNPJLS4", "Social Security Administration", "SSA OFC OF ACQUISITION  GRANTS", "7C20", "IT AND TELECOM - DATA CENTER PRODUCTS (HARDWARE AND PERPETUAL LICENSE SOFTWARE)", "334111", "ELECTRONIC COMPUTER MANUFACTURING", None, 249871.44, 2025, "2025-09-30", "PURCHASE SERVER HARDWARE TO SUPPORT UPGRADE TO VMWARE CLOUD FOUNDATION.", 96.19),
+    ("https://app.notion.com/394ed5bb5bca814f9ce5cde24a25d278", "15JA0522F00000190", "JOHNSON CONTROLS SECURITY SOLUTIONS LLC", "8B951", "YV2MG1WKYEQ3", "Department of Justice", "EOUSA-ACQUISITIONS STAFF", "H963", "OTHER QC/TEST/INSPECT- ALARM, SIGNAL, AND SECURITY DETECTION SYSTEMS", "561621", "SECURITY SYSTEMS SERVICES (EXCEPT LOCKSMITHS)", None, 249440, 2024, "2024-03-21", "SECURITY ALARM MONITORING", 96.19),
+    ("https://app.notion.com/394ed5bb5bca817ca6a3d731ceff09f3", "19KE5024A0006", "MISCELLANEOUS FOREIGN AWARDEES", "35KC0", "LN9PU5M2YZN5", "Department of State", "AMERICAN EMBASSY NAIROBI", "V999", "TRANSPORTATION/TRAVEL/RELOCATION- OTHER: OTHER", "423860", "TRANSPORTATION EQUIPMENT AND SUPPLIES (EXCEPT MOTOR VEHICLE) MERCHANT WHOLESALERS", None, 250000, 2024, "2024-03-05", "BPA SET UP", 96.19),
+    ("https://app.notion.com/394ed5bb5bca81858614dbe4a6257bda", "140L1225C0001", "BAD QUAIL", "84CA7", "JYAAH25CMMP6", "Department of the Interior", "CALIFORNIA STATE OFFICE", "J047", "MAINT/REPAIR/REBUILD OF EQUIPMENT- PIPE, TUBING, HOSE, AND FITTINGS", "237110", "WATER AND SEWER LINE AND RELATED STRUCTURES CONSTRUCTION", "SMALL BUSINESS SET ASIDE - TOTAL", 247292, 2025, "2025-01-07", "BISHOP CAMPGROUNDS WATER SYSTEMS GAOA", 96.18),
+    ("https://app.notion.com/394ed5bb5bca81a8bcefe03b180282ff", "2031JG24F00429", "DUNKIRK SPECIALTY STEEL LLC", "3AY32", "HCDHW43GHAD7", "Department of the Treasury", "US MINT HEADQUARTERS", "9510", "BARS AND RODS", "333514", "SPECIAL DIE AND TOOL, DIE SET, JIG, AND FIXTURE MANUFACTURING", None, 246600, 2024, "2024-09-09", "UNITED STATES PHILADELPHIA MINT L6 DIE STEEL", 96.18),
+    ("https://app.notion.com/394ed5bb5bca81ad901dd11108771840", "140L4325F0057", "KNIFE RIVER CORPORATION - NORTHWEST", "07GP4", "TMEZJMA9NNQ5", "Department of the Interior", "OREGON STATE OFFICE", "5610", "MINERAL CONSTRUCTION MATERIALS, BULK", "324121", "ASPHALT PAVING MIXTURE AND BLOCK MANUFACTURING", "NO SET ASIDE USED.", 249371.60, 2025, "2025-06-12", "NW OREGON DISTRICT FY25 HOTMIX", 96.19),
+    ("https://app.notion.com/394ed5bb5bca81dda412f0dde0fca4e6", "19AQMM22P0727", "MAGNET FORENSICS, LLC", "7R0W9", "JKRDYNDWLNB8", "Department of State", "ACQUISITIONS - AQM MOMENTUM", "7J20", "IT AND TELECOM - SECURITY AND COMPLIANCE PRODUCTS (HARDWARE AND PERPETUAL LICENSE SOFTWARE)", "511210", "SOFTWARE PUBLISHERS", "SMALL BUSINESS SET ASIDE - TOTAL", 249651, 2024, "2024-05-09", "GRAYKEY LICENSES", 96.19),
+    ("https://app.notion.com/394ed5bb5bca81e4ae44dd41cfb5eeae", "127EAS24F0044", "PLUMAS SANITATION, INC", "3STM0", "JWHDM48PSKC3", "Department of Agriculture", "USDA-FS, CSA SOUTHWEST 2", "S222", "HOUSEKEEPING- WASTE TREATMENT/STORAGE", "562991", "SEPTIC TANK AND RELATED SERVICES", "SMALL BUSINESS SET ASIDE - TOTAL", 249800, 2024, "2024-09-30", "YUBA RIVER NORTH TOILET PUMPING BPA CALL.", 96.19),
+    ("https://app.notion.com/394ed5bb5bca81fe8b13ff75b2bc56b8", "15UPET25P00000491", "CHESAPEAKE PRESS REPAIR, INC.", "8CCF9", "L1DBYCLH7G78", "Department of Justice", "FEDERAL PRISON INDUSTRIES, INC", "V112", "TRANSPORTATION/TRAVEL/RELOCATION- TRANSPORTATION: MOTOR FREIGHT", "484121", "GENERAL FREIGHT TRUCKING, LONG-DISTANCE, TRUCKLOAD", "SMALL BUSINESS SET ASIDE - TOTAL", 249185.77, 2026, "2025-10-01", "MOVING EQUIPMENT AND SETUP", 96.19),
+]

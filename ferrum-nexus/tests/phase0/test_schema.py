@@ -13,6 +13,7 @@ SEED_DIR = ROOT / "seed"
 REQUIRED_TABLES = {
     "opportunities", "suppliers", "co_clusters", "blockers", "adls",
     "onboarding_docs", "past_performance", "attachments", "quotes",
+    "awards", "market_intel",
 }
 
 
@@ -66,7 +67,8 @@ def test_db_file_is_not_plaintext_sqlite(tmp_path):
 
 
 def test_seed_csvs_present_and_nonempty():
-    for name in ("opportunities.csv", "suppliers.csv", "co_clusters.csv", "links.csv"):
+    for name in ("opportunities.csv", "suppliers.csv", "co_clusters.csv", "links.csv",
+                 "awards.csv", "market_intel.csv"):
         assert (SEED_DIR / name).exists(), f"missing {name}"
         assert _csv_row_count(name) > 0, f"{name} has no rows"
 
@@ -82,6 +84,8 @@ def test_seed_loader_matches_csv_row_counts(tmp_path):
     assert counts["suppliers"] == _csv_row_count("suppliers.csv")
     assert counts["co_clusters"] == _csv_row_count("co_clusters.csv")
     assert counts["opportunity_supplier_links"] == _csv_row_count("links.csv")
+    assert counts["awards"] == _csv_row_count("awards.csv")
+    assert counts["market_intel"] == _csv_row_count("market_intel.csv")
 
     for table, expected in counts.items():
         actual = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]

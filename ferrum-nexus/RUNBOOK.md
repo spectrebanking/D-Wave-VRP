@@ -39,6 +39,7 @@ Should print `green: True` and exit 0. If not, it tells you exactly what's missi
 | `scripts/quote_render.py` (via Python) | Assemble the full quote package + Readiness Assessment |
 | `scripts/pull.py` + `scripts/sam_client.py` | Pull live opportunities/attachments from SAM.gov (needs real API key + SAM active) |
 | `scripts/score.py` | Rank current opportunities by lane coverage + NAICS match |
+| `scripts/awards.py` | FPDS award/market intel + NAICS overlap against live opportunities (already-won contracts, not bids) |
 
 See `.claude/commands/*.md` for the full usage of each.
 

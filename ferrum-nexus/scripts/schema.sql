@@ -146,6 +146,42 @@ CREATE TABLE IF NOT EXISTS cui_access_log (
     FOREIGN KEY (attachment_key) REFERENCES attachments (attachment_key)
 );
 
+-- [Market intel] FPDS historical contract-award records -- these are
+-- ALREADY-AWARDED contracts pulled as competitor/market intelligence, not
+-- opportunities to bid on. Seeded from the live "FPDS Ferrum Relevant Awards
+-- -- Fast Intel" Notion data source.
+CREATE TABLE IF NOT EXISTS awards (
+    notion_url TEXT PRIMARY KEY,
+    award_id TEXT,
+    vendor TEXT,
+    cage_code TEXT,
+    uei TEXT,
+    agency TEXT,
+    office TEXT,
+    psc TEXT,
+    psc_description TEXT,
+    naics_code TEXT,
+    naics_description TEXT,
+    set_aside TEXT,
+    value_used REAL,
+    fiscal_year INTEGER,
+    action_date TEXT,
+    description TEXT,
+    ferrum_score REAL
+);
+
+-- Curated lane/agency/vendor intelligence notes derived from the FPDS award
+-- pull -- patterns worth tracking, not 1:1 award records (see `awards`).
+CREATE TABLE IF NOT EXISTS market_intel (
+    notion_url TEXT PRIMARY KEY,
+    intel_item TEXT NOT NULL,
+    category TEXT,
+    priority TEXT,
+    value_sum REAL,
+    why_it_matters TEXT,
+    next_step TEXT
+);
+
 CREATE TABLE IF NOT EXISTS quotes (
     quote_key TEXT PRIMARY KEY,
     solicitation_number TEXT NOT NULL,

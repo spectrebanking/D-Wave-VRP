@@ -10,6 +10,8 @@ from _seed_opportunities import OPPORTUNITIES
 from _seed_suppliers import SUPPLIERS
 from _seed_co_clusters import CO_CLUSTERS
 from _seed_links import LINKS
+from _seed_awards import AWARDS
+from _seed_market_intel import MARKET_INTEL
 
 ROOT = Path(__file__).resolve().parent.parent
 SEED_DIR = ROOT / "seed"
@@ -49,11 +51,26 @@ def main():
         ["opportunity_url", "supplier_url"],
         sorted(set(LINKS)),
     )
+    n_awards = write_csv(
+        SEED_DIR / "awards.csv",
+        ["notion_url", "award_id", "vendor", "cage_code", "uei", "agency", "office",
+         "psc", "psc_description", "naics_code", "naics_description", "set_aside",
+         "value_used", "fiscal_year", "action_date", "description", "ferrum_score"],
+        AWARDS,
+    )
+    n_intel = write_csv(
+        SEED_DIR / "market_intel.csv",
+        ["notion_url", "intel_item", "category", "priority", "value_sum",
+         "why_it_matters", "next_step"],
+        MARKET_INTEL,
+    )
 
     print(f"opportunities.csv: {n_opps} rows")
     print(f"suppliers.csv: {n_suppliers} rows")
     print(f"co_clusters.csv: {n_clusters} rows")
     print(f"links.csv: {n_links} rows")
+    print(f"awards.csv: {n_awards} rows")
+    print(f"market_intel.csv: {n_intel} rows")
 
 
 if __name__ == "__main__":

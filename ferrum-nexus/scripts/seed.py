@@ -86,6 +86,56 @@ def load_links(conn) -> int:
     return len(rows)
 
 
+def load_awards(conn) -> int:
+    rows = list(_rows(SEED_DIR / "awards.csv"))
+    for r in rows:
+        conn.execute(
+            """INSERT INTO awards
+               (notion_url, award_id, vendor, cage_code, uei, agency, office,
+                psc, psc_description, naics_code, naics_description, set_aside,
+                value_used, fiscal_year, action_date, description, ferrum_score)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+               ON CONFLICT(notion_url) DO UPDATE SET
+                 award_id=excluded.award_id, vendor=excluded.vendor,
+                 cage_code=excluded.cage_code, uei=excluded.uei,
+                 agency=excluded.agency, office=excluded.office, psc=excluded.psc,
+                 psc_description=excluded.psc_description, naics_code=excluded.naics_code,
+                 naics_description=excluded.naics_description, set_aside=excluded.set_aside,
+                 value_used=excluded.value_used, fiscal_year=excluded.fiscal_year,
+                 action_date=excluded.action_date, description=excluded.description,
+                 ferrum_score=excluded.ferrum_score""",
+            (
+                r["notion_url"], r["award_id"], r["vendor"], r["cage_code"], r["uei"],
+                r["agency"], r["office"], r["psc"], r["psc_description"], r["naics_code"],
+                r["naics_description"], r["set_aside"], r["value_used"], r["fiscal_year"],
+                r["action_date"], r["description"], r["ferrum_score"],
+            ),
+        )
+    conn.commit()
+    return len(rows)
+
+
+def load_market_intel(conn) -> int:
+    rows = list(_rows(SEED_DIR / "market_intel.csv"))
+    for r in rows:
+        conn.execute(
+            """INSERT INTO market_intel
+               (notion_url, intel_item, category, priority, value_sum,
+                why_it_matters, next_step)
+               VALUES (?, ?, ?, ?, ?, ?, ?)
+               ON CONFLICT(notion_url) DO UPDATE SET
+                 intel_item=excluded.intel_item, category=excluded.category,
+                 priority=excluded.priority, value_sum=excluded.value_sum,
+                 why_it_matters=excluded.why_it_matters, next_step=excluded.next_step""",
+            (
+                r["notion_url"], r["intel_item"], r["category"], r["priority"],
+                r["value_sum"], r["why_it_matters"], r["next_step"],
+            ),
+        )
+    conn.commit()
+    return len(rows)
+
+
 def load_all(conn) -> dict:
     # Order matters: links.csv references opportunities + suppliers by URL.
     counts = {
@@ -94,6 +144,8 @@ def load_all(conn) -> dict:
         "co_clusters": load_co_clusters(conn),
     }
     counts["opportunity_supplier_links"] = load_links(conn)
+    counts["awards"] = load_awards(conn)
+    counts["market_intel"] = load_market_intel(conn)
     backfill_solicitation_numbers(conn)
     return counts
 

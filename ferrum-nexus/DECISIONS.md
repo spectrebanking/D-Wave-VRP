@@ -189,3 +189,33 @@ with no path override, so they share state with whatever's on disk rather than a
 tempfile DB -- rerunning a demo gate a second time against old state can produce a false gate
 failure that looks like a code regression. Wiping `data/` before a gate re-run is the fix, not a
 code change.
+
+## 2026-07-05 — FPDS award/market intelligence: `awards` + `market_intel` tables
+
+Pulled the live "FPDS Ferrum Relevant Awards -- Fast Intel" and "FPDS Ferrum Intelligence
+Summary" Notion data sources per the user's request to bring in past-award data. Found the
+whole FPDS pipeline documented on the "Ferrum Nexus -- GovCon Matrix Command Center" page: the
+raw FPDS delta file matched **~1,135,517** keyword-relevant award rows workspace-wide, a "fast
+intel pack" filtered the first 100,000 of those for Notion execution, but Notion's connector
+caps row creation at 100 database pages per create call -- so only **10 award rows and 10
+intelligence-summary rows ever actually landed** as real Notion pages. The other two FPDS
+databases (`FPDS Contract Awards Delta -- Import Control`, `FPDS Raw Notion Import Chunks`) are
+import-tracking control rows describing that stalled bulk load, not additional award data --
+confirmed by fetching their schemas, there is nothing further to pull from them right now.
+
+Decision: seed exactly the 10+10 real rows (`scripts/_seed_awards.py`, `_seed_market_intel.py`)
+rather than fabricating the missing ~1.1M -- same "seed what's real, not what the packet assumed"
+principle as the earlier opportunities/suppliers seed decision. Added `awards` and
+`market_intel` tables to `schema.sql`, loaders in `seed.py`, CSV export in `build_seed_csvs.py`,
+and `scripts/awards.py` (`/fn-awards`) which renders the intelligence notes ranked by priority
+and cross-references every seeded award's NAICS code against live, current opportunities --
+proof the government has actually bought in that lane before, not just posted a solicitation
+that may go nowhere. One real match surfaced immediately: award `140L1225C0001` (NAICS 237110,
+water/sewer construction) matches the seeded "Replace Water and Fire Piping Loop" opportunities.
+
+If the user re-runs the native Notion CSV import for the full 100k/1.1M-row pack later, re-export
+and re-run `build_seed_csvs.py` -- the loader isn't hardcoded to stay at 10 rows.
+
+5 new tests added (`tests/phase4/test_awards.py`), plus `tests/phase0/test_schema.py` extended to
+cover the two new tables/CSVs. 72 tests passing (was 67), ruff clean, `/fn-doctor` and both
+Phase 2/3 gates re-verified green from a wiped `data/` directory.
